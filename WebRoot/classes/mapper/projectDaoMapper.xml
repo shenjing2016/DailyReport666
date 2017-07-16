@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+
+
+<!-- 配置mapper,mybatis通过使用mapper实现dao接口 -->
+<mapper namespace="heu.dailyreport.dao.ProjectDao">
+
+	<!-- 通过ID来查找项目 -->
+	<select id="findProjectById" resultType="Project" parameterType="String">
+		SELECT * FROM PROJECT WHERE projId = #{id}
+	</select>
+	
+	<!-- 查找所有项目 -->
+	<select id="findProjectAll" resultType="Project" >
+		SELECT * FROM PROJECT
+	</select>
+	<!-- 新增项目 -->
+	<insert id="insertProject" parameterType="Project">
+		INSERT INTO PROJECT
+		(projId,projName,projStartTime,projDeadTime,projStatus,projManager,grpId,projText)
+		VALUES
+		(#{projId},#{projName},#{projStartTime},#{projDeadTime},#{projStatus},#{projManager},#{grpId},#{projText})
+	</insert>
+	
+	<update id="updateProjectById" parameterType="Project">
+		UPDATE PROJECT
+		set projStatus=#{projStatus}
+		WHERE projId=#{projId}
+	</update>
+	<!-- 通过组号、有效时间段来查找项目 -->
+	<select id="findProjectByGroupAndTime" resultType="Project" parameterType="Project">
+		SELECT * fROM PROJECT WHERE GRPID = #{grpId} AND PROJSTARTTIME <![CDATA[<=]]> #{projStartTime} AND PROJDEADTIME <![CDATA[>=]]> #{projStartTime}
+	</select>
+	
+		<!-- 不该写在这里 -->
+	<!-- 通过职位来找编号 -->
+	<select id="findUserByRole" resultType="User">
+		SELECT * FROM EMPLOYEE WHERE userRole = 3
+	</select>
+	
+	
+	<!-- 不该写在这里 -->
+	<!-- 小组编号 -->
+	<select id="findProjGroup" resultType="ProjGroup">
+		SELECT * FROM ProjGroup
+	</select>
+	
+	
+	
+</mapper>

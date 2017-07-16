@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!-- 配置mapper,mybatis通过使用mapper实现dao接口 -->
+<mapper namespace="heu.dailyreport.dao.IndexDao">
+	<select id="findUserIdByIndex" resultType="String" parameterType="String">
+		SELECT max(u.userId) FROM employee u
+        WHERE u.userId like CONCAT(#{str},'%' )
+	</select>
+	<select id="findGrpIdByIndex" resultType="String" parameterType="String">
+		SELECT max(pg.grpId) FROM projgroup pg
+        WHERE pg.grpId like CONCAT(#{str},'%' ) 
+	</select>
+	<select id="findDepartmentIdByIndex" resultType="String">
+		SELECT max(d.deptId) FROM department d
+	</select>
+</mapper>
+

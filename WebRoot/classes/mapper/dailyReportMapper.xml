@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+
+<!-- 配置mapper,mybatis通过使用mapper实现dao接口 -->
+<mapper namespace="heu.dailyreport.dao.DailyReportDao">
+
+	<!-- 项目经理查找日报，通过起始、结束日期，项目名称，项目状态，任务 -->
+	<select id="findDailyReportList" resultType="DailyReportProject" parameterType="DailyReportProject">
+		SELECT * FROM DailyReport d, project p, employee e
+		<where>
+			p.projId=d.projId
+			and d.userId = e.userId
+			<if test="drTimeStart != '' and drTimeEnd != '' and drTimeStart != null and drTimeEnd != null">AND d.drTime between to_date('${drTimeStart}','yyyy-mm-dd') and to_date('${drTimeEnd}','yyyy-mm-dd')</if>
+			<!-- <if test="drTimeStart != '' and drTimeEnd != '' and drTimeStart != null and drTimeEnd != null">AND d.drTime between #{drTimeStart} and #{drTimeEnd})</if> -->
+			<if test="projName != '' and projName != null">AND p.projName =#{projName}</if>
+			<if test="drStatus!= -1 and drStatus!=null and drStatus!=0" >AND d.drStatus=#{drStatus}</if>
+			<if test="drText != '' and drText!=null">AND d.drText like '%${drText}%'</if>
+			<if test="drId != '' and  drId != null">AND d.drId =#{drId}</if>	
+		</where>	
+	</select>
+	
+	<!-- 个人查找日报，通过起始、结束日期，项目名称，项目状态，任务 -->
+	<select id="findDailyReportListSelf" resultType="DailyReportProject" parameterType="DailyReportProject">
+		SELECT * FROM DailyReport d, project p
+		<where>
+			p.projId=d.projId
+			and d.userId=#{userId}
+			<if test="drTimeStart != '' and drTimeEnd != '' and drTimeStart != null and drTimeEnd != null">AND d.drTime between to_date('${drTimeStart}','yyyy-mm-dd') and to_date('${drTimeEnd}','yyyy-mm-dd')</if>
+<!-- 			<if test="drTimeStart != '' and drTimeEnd != '' and drTimeStart != null and drTimeEnd != null">AND d.drTime between #{drTimeStart} and #{drTimeEnd})</if>
+ -->			<if test="projName != '' and projName != null">AND p.projName =#{projName}</if>
+			<if test="drStatus!= -1 and drStatus!=null and drStatus!=0" >AND d.drStatus=#{drStatus}</if>
+			<if test="drText != '' and drText!=null">AND d.drText like '%${drText}%'</if>
+			<if test="drId != '' and  drId != null">AND d.drId =#{drId}</if>	
+		</where>	
+	</select>
+	
+	<!-- select 查询projName-->
+	<select id="findprojName" resultType="Project">
+		select projName from Project
+	</select>
+	
+	<!-- select 查询全部日报-->
+	<select id="getAllDailyReport" resultType="DailyReport" >
+		select * from DailyReport	
+	</select>
+	
+	 <!-- 新建日报
+	 	- @author 王喆
+	 	- @version 1.0
+	 	- @since 2017年2月28日09:34:19 -->
+	  <insert id="insertDailyReport">
+		INSERT INTO DailyReport
+		<trim prefix="(" suffix=")" suffixOverrides="," >
+		drId,
+		userId,
+        drTime,
+        drStatus,
+        drChecker,
+        projId,
+        drText,
+        drWork,
+        drExWork,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+		#{drId},
+		#{userId},
+        #{drTime},
+        #{drStatus},
+        #{drChecker},
+        #{projId},
+        #{drText},
+        #{drWork},
+        #{drExWork},
+    </trim>
+	</insert>
+
+	<!-- 删除日报
+	<delete id="deleteDailyReport">
+		DELETE FROM DailyReport WHERE drId = #{drId}
+	</delete>-->
+
+	<!-- 修改日报的日期、任务、工作量，加班，项目 -->
+	<update id="updateDailyReport"  parameterType="DailyReportProject">
+      update DailyReport 
+      set drTime = #{drTime},
+      drText = #{drText},
+      drWork = #{drWork},
+      drExWork = #{drExWork},
+      projId = (select projId from project where projName=#{projName})
+      where drId = #{drId}
+  </update> 
+  
+  <!-- 查找工作量，通过开始时间和结束时间 -->
+	<select id="CountWorkByDate" resultType="double" parameterType="DailyReportTime">
+		SELECT sum(d.drwork) FROM dailyreport d WHERE d.drtime between  #{startTime}
+		AND	#{endTime} 	
+		GROUP BY d.userid
+		ORDER BY d.userid
+	</select>
+<!-- 查找工作量，通过开始时间和结束时间 -->
+	<select id="CountExWorkByDate" resultType="double" parameterType="DailyReportTime">
+		SELECT sum(d.drexwork) FROM dailyreport d WHERE d.drtime between  #{startTime}
+		AND	#{endTime}
+		GROUP BY d.userid
+		ORDER BY d.userid 	
+	</select>
+	<select id="FindIdByDate" resultType="DailyReportWork" parameterType="DailyReportTime">
+		SELECT d.userId, u.username FROM dailyreport d , employee u WHERE d.drtime between  #{startTime}
+		AND	#{endTime} 
+		AND d.userid = u.userid 
+	    GROUP BY d.userid,u.username
+	    ORDER BY d.userid 	
+	</select>
+  
+    <sql id="query_project_where">
+	    p.projId = d.projId
+		<if test="projName!=''">AND p.projName = #{projName}</if>
+	    <if test="projId!=''">AND　p.projId = #{projId}</if>
+	</sql>
+	<select id="CountWorkByProjId" resultType="double" parameterType="Project">
+	    SELECT	sum(d.drwork) FROM dailyreport d , project p
+	    <where>
+	       <include refid="query_project_where"></include>
+	    </where>
+	    GROUP BY p.projId
+	    ORDER BY p.projId	    
+	    
+
+	</select>
+	<select id="CountExWorkByProjId" resultType="double" parameterType="Project">
+	    SELECT	sum(d.drexwork) FROM dailyreport d , project p
+	    <where>
+	       <include refid="query_project_where"></include>
+	    </where>
+	    GROUP BY p.projId
+	    ORDER BY p.projId
+	    
+	    
+	</select>
+	<select id="FindOtherByProjId" resultType="ProjectWork" parameterType="Project">
+	    SELECT	p.projId , p.projName , p.projStatus  FROM dailyreport d , project p
+	    
+	   <where>
+	       <include refid="query_project_where"></include>
+	    </where>
+        GROUP BY p.projId , p.projName , p.projStatus
+	    ORDER BY p.projId
+	</select>
+	
+	
+	
+	<sql id="query_weekreport_where">
+	    u.userId = d.userId
+		AND (d.drtime between  #{startTime} AND	#{endTime})
+		<if test="userName!=''">AND u.userName = #{userName}</if>
+	    <if test="userId!=''">AND　u.userId = #{userId}</if>
+	</sql>
+	<select id="CountWeekWorkReportById" resultType="double" parameterType="WeekReport">
+		SELECT sum(d.drwork) FROM employee u , dailyreport d           
+        <where>
+	       <include refid="query_weekreport_where"></include>
+	    </where>
+        GROUP BY u.userid     
+        ORDER BY u.userid   
+	</select>
+		<select id="CountWeekExWorkReportById" resultType="double" parameterType="WeekReport">
+	     SELECT sum(d.drexwork) FROM employee u , dailyreport d           
+        <where>
+	       <include refid="query_weekreport_where"></include>
+	    </where>
+        GROUP BY u.userid     
+        ORDER BY u.userid   
+	
+	</select>
+		<select id="FindWeekReportById" resultType="WeekReport" parameterType="WeekReport">
+	    SELECT u.userId, u.userName  FROM employee u , dailyreport d           
+        <where>
+	       <include refid="query_weekreport_where"></include>
+	    </where>
+        GROUP BY u.userid ,u.username
+        ORDER BY u.userid 
+	
+	</select>
+	
+	
+</mapper>

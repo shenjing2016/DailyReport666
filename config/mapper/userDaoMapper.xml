@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!-- 配置mapper,mybatis通过使用mapper实现dao接口 -->
+<mapper namespace="heu.dailyreport.dao.UserDao">
+
+	<!-- 查找用户，通过id、email、userName、phone -->
+	<select id="findUserById" resultType="User" parameterType="java.lang.String">
+		SELECT * FROM EMPLOYEE WHERE userId = #{userId}
+	</select>
+	
+
+	
+	<select id="findUserCustomById" resultType="UserCustom" parameterType="java.lang.String">
+		<!-- SELECT * FROM EMPLOYEE WHERE userId = #{userId} -->
+		SELECT userId, userName, grpName, userRole FROM EMPLOYEE e ,projGroup p WHERE userId = #{userId} and e.grpId = p.grpId
+	</select>
+	
+	<select id="findUserByUserName" resultType="User" parameterType="java.lang.String">
+		SELECT * FROM EMPLOYEE WHERE userName = #{userName}
+	</select>
+	<!-- <select id="findUserByPhone" resultType="User" parameterType="java.lang.String">
+		SELECT * FROM USER WHERE email = #{phone}
+	</select> -->
+
+	<!-- 查找用户通过userId,userName,deptName,userRole -->
+	<select id="findUserList" resultType="UserCustom" parameterType="UserCustom">
+		select userId, userName, g.grpName, userRole
+		from Employee e, ProjGroup g
+		<where>
+			e.grpId=g.grpId
+			and userRole!=9
+			and userRole!=8
+	  		<if test='userId != "" and userId !=null'>AND userId like '%${userId}%'</if>
+	  		
+	  		<if test='userName != "" and userName != null'>AND userName like '%${userName}%'</if>
+	  		
+	  		<if test='grpName != "" and grpName != null'>AND g.grpName = #{grpName}</if>
+	  		<if test='userRole != -1 and userRole != null'>AND userRole = #{userRole}</if>
+	  	</where>
+	</select>
+	
+	<!-- select 查询grpName -->
+	<select id="findGrpName" resultType="ProjGroup">
+		select * from projGroup
+	</select>
+	
+	<select id="getAllUser" resultType="User" >
+		select * from employee	
+	</select>
+
+	<!-- 新增用户 -->
+	<insert id="insertUser">
+		INSERT INTO EMPLOYEE
+		(userId,userName,userPwd,grpId,userRole)
+		VALUES
+		(#{userId},#{userName},#{userPwd},#{groupId},#{userRole})
+	</insert>
+
+	<!-- 删除用户 -->
+	<delete id="deleteUser" parameterType="java.lang.String" >
+		DELETE FROM EMPLOYEE WHERE userId = #{userId}
+	</delete>
+	
+	<!-- 解雇员工 -->
+	<update id="fireUser" parameterType="java.lang.String">
+		UPDATE EMPLOYEE SET userRole=9 WHERE userId=#{userId}
+	</update>
+
+	<!-- 管理员更改用户信息 -->
+	<update id="updateUser" parameterType="UserCustom">
+		UPDATE EMPLOYEE SET
+		userName=#{userName},
+		grpId=(select grpId from projGroup where grpName=#{grpName}),
+		userRole=#{userRole}
+		
+		WHERE userId=#{userId}
+	</update>
+	
+	<update id="updateUserSelf" parameterType="User">
+		UPDATE EMPLOYEE SET
+		userName=#{userName},
+		userPwd=#{userPwd}
+		
+		WHERE userId=#{userId}
+	</update>
+</mapper>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!-- 配置mapper,mybatis通过使用mapper实现dao接口 -->
+<mapper namespace="heu.dailyreport.dao.ReviewDao">
+
+	<!-- 查找所有用户 -->
+	<select id="findUser" resultType="String">
+		SELECT USERNAME FROM EMPLOYEE
+	</select>
+	<!-- 日报审核模块查询所有日报信息  -->
+	<select id="findAllDailyReportReview" resultType="heu.dailyreport.pojo.Custom1">
+		select DailyReport.drId,Employee.userName,Project.projName,DailyReport.drText,Department.deptName,DailyReport.drTime,DailyReport.drWork,DailyReport.drExWork,DailyReport.drStatus 
+		from Employee,Project,DailyReport,Department,ProjGroup 
+		where Department.deptId=ProjGroup.deptId and
+			  	ProjGroup.grpId=Project.grpId and
+					Project.projId=DailyReport.projId and
+						DailyReport.userId=Employee.userId
+	</select>
+	
+	<!-- 日报审核模块查询日报信息  -->
+	<select id="findDailyReportReview" parameterType="heu.dailyreport.pojo.Custom1" resultType="heu.dailyreport.pojo.Custom1">
+		select DailyReport.drId,Employee.userName,Project.projName,DailyReport.drText,Department.deptName,DailyReport.drTime,DailyReport.drWork,DailyReport.drExWork,DailyReport.drStatus 
+		from Employee,Project,DailyReport,Department,ProjGroup 
+		<where>
+				<include refid="query_review_where"/>
+		</where>
+	</select>
+	<sql id="query_review_where">
+				Department.deptId=ProjGroup.deptId and
+				ProjGroup.grpId=Project.grpId and
+				Project.projId=DailyReport.projId and
+				DailyReport.userId=Employee.userId 
+				<if test="sTime!=null and  eTime!=null ">
+					and DailyReport.drTime between #{sTime} and #{eTime}
+				</if>
+				<if test="userName!=null and userName!=''">
+					and userName like '%${userName}%'
+				</if>
+				<if test="drStatus!=0">
+					and drStatus like '%${drStatus}%'
+				</if>
+	</sql>
+	<!-- 日报审核模块修改时查询日报信息 -->
+	<select id="findDailyReportAlter" resultType="heu.dailyreport.pojo.Custom1">
+		select DailyReport.drId,Employee.userName,Project.projName,DailyReport.drText,DailyReport.drTime,DailyReport.drWork,DailyReport.drExWork
+		from Employee,Project,DailyReport
+		where Project.projId=DailyReport.projId and
+				DailyReport.userId=Employee.userId and
+					DailyReport.drId=#{drId} 
+	</select>
+	<!-- 日报审核模块修改 -->
+	<update id="alterDailyReport" parameterType="heu.dailyreport.pojo.Custom1" >
+		update DailyReport set 
+		drText=#{drText},drStatus=#{drStatus}
+		where drId=#{drId}
+	</update>
+	<!-- 日报审核模块审核 -->
+	<update id="checkDailyReport" parameterType="heu.dailyreport.pojo.Custom1" >
+		update DailyReport set 
+		drStatus=#{drStatus}
+		where drId=#{drId}
+	</update>
+	
+	
+
+	
+</mapper>

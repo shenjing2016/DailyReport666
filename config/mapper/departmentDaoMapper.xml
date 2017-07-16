@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!-- 配置mapper,mybatis通过使用mapper实现dao接口 -->
+<mapper namespace="heu.dailyreport.dao.DepartmentDao">
+	<!-- 通过ID来查找项目 -->
+	<select id="findDepartmentById" resultType="Department" parameterType="String">
+		SELECT * FROM DEPARTMENT WHERE deptId = #{id}
+	</select>
+	
+	<!-- 查找所有项目 -->
+	<select id="findDepartmentAll" resultType="Department" >
+		SELECT * FROM DEPARTMENT
+	</select>
+	
+	<!-- 新增项目 -->
+	<insert id="insertDepartment" parameterType="Department">
+		INSERT INTO DEPARTMENT
+		(deptId,deptName,deptManager)
+		VALUES
+		(#{deptId},#{deptName},#{deptManager})
+	</insert>
+	
+	<update id="updateDepartment" parameterType="Department">
+		update DEPARTMENT
+		set deptName=#{deptName},deptManager=#{deptManager}
+		where deptId=#{deptId}
+	</update>
+	
+	
+		<!-- 不该写在这里 -->
+	<!-- 通过职位来找编号 -->
+	<select id="findUserByRole" resultType="User">
+		SELECT * FROM EMPLOYEE WHERE userRole = 3
+	</select>
+	
+
+</mapper>
